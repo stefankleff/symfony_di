@@ -9,8 +9,6 @@ use Doctrine\ORM\EntityManagerInterface;
 
 final class MyService
 {
-    public function __construct(
-        private EntityManagerInterface $entityManager
-    ) {}
+    public function __construct(EntityManagerInterface $entityManager) {}
 
 }
