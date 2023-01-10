@@ -6,6 +6,7 @@ Demonstration of https://github.com/symfony/symfony/issues/48895
 
 ## Usage 
 - Checkout this repository
+- Run `composer install`
 - Run `rm -r var/cache && bin/console`
 
 The following error shows up:
