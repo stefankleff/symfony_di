@@ -8,17 +8,10 @@ use App\Entity\Product;
 use App\Service\MyService;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
 
-#[AsEntityListener(event: 'preRemove', entity: Product::class)]
+#[AsEntityListener]
 class My1EntityListener
 {
 
-    public function __construct(
-        private MyService $authenticator,
-    ) {}
-
-    public function preRemove(): void
-    {
-    }
-
+    public function __construct(MyService $service) {}
 
 }
