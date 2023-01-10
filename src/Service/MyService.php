@@ -7,7 +7,7 @@ namespace App\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
 
-final class MyService
+class MyService
 {
     public function __construct(EntityManagerInterface $entityManager) {}
 
