@@ -15,9 +15,46 @@ In MissingMappingDriverImplementation.php line 11:
 It's a requirement to specify a Metadata Driver and pass it to Doctrine\ORM\Configuration::setMetadataDriverImpl(). 
 ```
 
-## Insights 
+## Cause
+The entity manager in the compiled container is constructed before the necessary options in the Configuration object are set
+```php
+$a = new \Doctrine\ORM\Configuration();
 
-- subsequent runs of bin/console are running without error
+$b = new \Doctrine\Persistence\Mapping\Driver\MappingDriverChain();
+$b->addDriver(new \Doctrine\ORM\Mapping\Driver\AttributeDriver([0 => (\dirname(__DIR__, 4).'/src/Entity')]), 'App\\Entity');
+$container->services['doctrine.orm.default_entity_manager'] = $instance = new \Doctrine\ORM\EntityManager(($container->services['doctrine.dbal.default_connection'] ?? $container->load('getDoctrine_Dbal_DefaultConnectionService')), $a);
+
+(new \Doctrine\Bundle\DoctrineBundle\ManagerConfigurator([], []))->configure($instance);
+
+$a->setEntityNamespaces(['App' => 'App\\Entity']);
+$a->setMetadataCache(new \Symfony\Component\Cache\Adapter\ArrayAdapter());
+$a->setQueryCache(($container->privates['cache.doctrine.orm.default.query'] ?? ($container->privates['cache.doctrine.orm.default.query'] = new \Symfony\Component\Cache\Adapter\ArrayAdapter())));
+$a->setResultCache(($container->privates['cache.doctrine.orm.default.result'] ?? ($container->privates['cache.doctrine.orm.default.result'] = new \Symfony\Component\Cache\Adapter\ArrayAdapter())));
+$a->setMetadataDriverImpl(new \Doctrine\Bundle\DoctrineBundle\Mapping\MappingDriver($b, new \Symfony\Component\DependencyInjection\Argument\ServiceLocator($container->getService, [
+    'doctrine.ulid_generator' => ['privates', 'doctrine.ulid_generator', 'getDoctrine_UlidGeneratorService', true],
+    'doctrine.uuid_generator' => ['privates', 'doctrine.uuid_generator', 'getDoctrine_UuidGeneratorService', true],
+], [
+    'doctrine.ulid_generator' => '?',
+    'doctrine.uuid_generator' => '?',
+])));
+$a->setProxyDir(($container->targetDir.''.'/doctrine/orm/Proxies'));
+$a->setProxyNamespace('Proxies');
+$a->setAutoGenerateProxyClasses(true);
+$a->setSchemaIgnoreClasses([]);
+$a->setClassMetadataFactoryName('Doctrine\\Bundle\\DoctrineBundle\\Mapping\\ClassMetadataFactory');
+$a->setDefaultRepositoryClassName('Doctrine\\ORM\\EntityRepository');
+$a->setNamingStrategy(new \Doctrine\ORM\Mapping\UnderscoreNamingStrategy(0, true));
+$a->setQuoteStrategy(new \Doctrine\ORM\Mapping\DefaultQuoteStrategy());
+$a->setEntityListenerResolver(($container->services['doctrine.orm.default_entity_listener_resolver'] ?? $container->load('getDoctrine_Orm_DefaultEntityListenerResolverService')));
+$a->setLazyGhostObjectEnabled(false);
+$a->setRepositoryFactory(new \Doctrine\Bundle\DoctrineBundle\Repository\ContainerRepositoryFactory(($container->privates['.service_locator.Xbsa8iG'] ?? ($container->privates['.service_locator.Xbsa8iG'] = new \Symfony\Component\DependencyInjection\Argument\ServiceLocator($container->getService, [], [])))));
+
+```
+
+
+
+## Insights
+- subsequent runs of raw bin/console are running without error, but if you run a command which requires the EM (eg. bin/console doctrine:mapping:info) the error is shown
 - the error is gone as soon as one of the EntityListeners is deleted (does not matter which on)
 - It works with symfony/dependency-injection v6.1.8
 
