@@ -1,0 +1,15 @@
+###> development ###
+.idea/
+.DS_Store
+Thumbs.db
+###< development ###
+
+###> symfony/framework-bundle ###
+/.env.local
+/.env.local.php
+/.env.*.local
+/config/secrets/prod/prod.decrypt.private.php
+/public/bundles/
+/var/
+/vendor/
+###< symfony/framework-bundle ###
